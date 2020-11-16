@@ -220,6 +220,7 @@ class Consul(AbstractDCS):
         self._register_service = config.get('register_service', False)
         if self._register_service:
             self._service_tags = config.get('service_tags', [])
+            self._service_meta = config.get('service_meta', {})
             self._service_name = service_name_from_scope_name(self._scope)
             if self._scope != self._service_name:
                 logger.warning('Using %s as consul service name instead of scope name %s', self._service_name,
@@ -415,6 +416,7 @@ class Consul(AbstractDCS):
         conn_parts = urlparse(data['conn_url'])
         check = base.Check.http(api_parts.geturl(), self._service_check_interval,
                                 deregister='{0}s'.format(self._client.http.ttl * 10))
+        meta = self._service_meta
         tags = self._service_tags[:]
         tags.append(role)
         params = {
@@ -422,6 +424,7 @@ class Consul(AbstractDCS):
             'address': conn_parts.hostname,
             'port': conn_parts.port,
             'check': check,
+            'meta': meta,
             'tags': tags
         }
 
